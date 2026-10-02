@@ -1,0 +1,38 @@
+{
+  "name": "seatly",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*"],
+  "engines": { "node": "^22.22.2 || >=24.15.0" },
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w @seatly/api\" \"npm run dev -w @seatly/web\"",
+    "build": "npm run build -w @seatly/web && npm run build -w @seatly/api",
+    "start": "npm run start -w @seatly/api",
+    "start:two": "concurrently -n api1,api2 \"PORT=4001 npm run start -w @seatly/api\" \"PORT=4002 npm run start -w @seatly/api\"",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "test": "npm run test:unit && npm run test:api && npm run test:web",
+    "test:unit": "vitest run --project shared --project api-unit",
+    "test:api": "vitest run --project api-integration",
+    "test:web": "vitest run --project web",
+    "db:up": "docker compose up -d --wait mongo",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v",
+    "db:check": "npm run db:check -w @seatly/api",
+    "seed": "npm run seed -w @seatly/api",
+    "demo:reset": "npm run demo:reset -w @seatly/api",
+    "demo:concurrency": "npm run demo:concurrency -w @seatly/api --",
+    "demo:idempotency": "npm run demo:idempotency -w @seatly/api --"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.0.0",
+    "concurrently": "^10.0.5",
+    "eslint": "^10.11.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.3"
+  }
+}

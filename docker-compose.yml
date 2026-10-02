@@ -1,0 +1,21 @@
+# Single-node MongoDB replica set. Transactions require a replica set; one node is enough for
+# development, tests and the concurrency demo. The healthcheck initiates the set idempotently,
+# so `docker compose up -d --wait mongo` returns only once there is a writable primary.
+services:
+  mongo:
+    image: mongo:8.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27017", "--setParameter", "enableTestCommands=1"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./docker/mongo-init.js:/docker/mongo-init.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--file", "/docker/mongo-init.js"]
+      interval: 2s
+      timeout: 10s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  mongo-data:

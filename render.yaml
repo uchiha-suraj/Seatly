@@ -1,0 +1,31 @@
+# Render Blueprint: one web service serves /api and the built SPA from the same origin.
+services:
+  - type: web
+    name: seatly
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false # set the Atlas connection string in the dashboard (secret)
+      - key: APP_ORIGIN
+        sync: false # e.g. https://seatly.onrender.com
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: SERVE_WEB_DIST
+        value: "true"
+      - key: DEMO_MODE
+        value: "false"
+      - key: ARGON2_MEMORY_KIB
+        value: "19456"
+      - key: LOG_LEVEL
+        value: info

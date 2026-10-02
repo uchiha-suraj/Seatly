@@ -1,0 +1,71 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource/jetbrains-mono/500.css';
+
+/* Tokens mirror the Figma variables (collection "Seatly tokens"). */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-canvas: #f7f7f5;
+  --color-surface: #ffffff;
+  --color-subtle: #f1f1ee;
+  --color-muted: #e7e6e2;
+  --color-line: #dddcd7;
+  --color-line-strong: #85837d;
+  --color-ink: #1b1b19;
+  --color-ink-2: #55534e;
+  --color-ink-3: #6f6d67;
+  --color-brand: #4338ca;
+  --color-brand-hover: #3730a3;
+  --color-brand-subtle: #eef0ff;
+  --color-brand-line: #c7cbf7;
+  --color-success: #166534;
+  --color-success-bg: #effbf2;
+  --color-success-line: #a7e3b9;
+  --color-warning: #92400e;
+  --color-warning-bg: #fff8eb;
+  --color-warning-line: #f6d58e;
+  --color-error: #b42318;
+  --color-error-bg: #fef3f2;
+  --color-error-line: #f9c6c1;
+  --color-info: #1e40af;
+  --color-info-bg: #eff5ff;
+  --color-info-line: #bfd3fb;
+  --color-seat-booked: #e7e6e2;
+  --color-seat-booked-text: #5f5d58;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --shadow-card: 0 1px 2px rgb(26 26 20 / 0.06), 0 4px 12px rgb(26 26 20 / 0.05);
+  --shadow-sticky: 0 -4px 16px rgb(26 26 20 / 0.1);
+}
+
+@layer base {
+  html {
+    color: var(--color-ink);
+    background: var(--color-canvas);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    min-height: 100dvh;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
