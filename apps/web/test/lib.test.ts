@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { api, ApiError } from '../src/api/client';
-import { formatCardDate, formatLongRange } from '../src/lib/format';
+import { formatBookedAt, formatCardDate, formatLong, formatLongRange, formatShortRange } from '../src/lib/format';
 import { bookingIntentFrom, safeReturnTo } from '../src/lib/returnTo';
 import { inProgressDelay, retryDelay } from '../src/lib/retry';
 import { delay, http, HttpResponse, server } from './msw';
@@ -30,6 +30,11 @@ describe('format', () => {
   it('formats in the event time zone', () => {
     expect(formatCardDate('2026-11-14T14:00:00.000Z', 'Asia/Kolkata')).toBe('SAT, 14 NOV · 7:30 PM');
     expect(formatLongRange('2026-11-14T14:00:00.000Z', '2026-11-14T16:30:00.000Z', 'Asia/Kolkata')).toBe('Saturday, 14 November 2026 · 7:30 – 10:00 PM');
+    expect(formatShortRange('2026-11-14T14:00:00.000Z', '2026-11-14T16:30:00.000Z', 'Asia/Kolkata')).toBe('Sat, 14 Nov 2026 · 7:30 – 10:00 PM');
+    expect(formatLong('2026-11-14T14:00:00.000Z', 'Asia/Kolkata')).toBe('Saturday, 14 November 2026 · 7:30 PM');
+  });
+  it('formats "booked on" like the Figma confirmation (date, 12-hour time, zone)', () => {
+    expect(formatBookedAt('2026-10-02T10:42:09.884Z')).toMatch(/^2 October 2026, \d{1,2}:\d{2} (AM|PM) \S+$/);
   });
 });
 

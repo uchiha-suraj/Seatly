@@ -25,6 +25,15 @@ export function formatLongRange(startIso: string, endIso: string, tz: string): s
   return `${pick(p, 'weekday')}, ${pick(p, 'day')} ${pick(p, 'month')} ${pick(p, 'year')} · ${sameMeridiem ? start.slice(0, -3) : start} – ${end}`;
 }
 
+/** Sat, 14 Nov 2026 · 7:30 – 10:00 PM (mobile event header) */
+export function formatShortRange(startIso: string, endIso: string, tz: string): string {
+  const p = parts(startIso, tz, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const start = formatTime(startIso, tz);
+  const end = formatTime(endIso, tz);
+  const sameMeridiem = start.slice(-2) === end.slice(-2);
+  return `${pick(p, 'weekday')}, ${pick(p, 'day')} ${pick(p, 'month')} ${pick(p, 'year')} · ${sameMeridiem ? start.slice(0, -3) : start} – ${end}`;
+}
+
 /** Sat, 14 Nov 2026 · 7:30 PM */
 export function formatShort(iso: string, tz: string): string {
   const p = parts(iso, tz, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
@@ -39,9 +48,18 @@ export function formatDateBlock(iso: string, tz: string): { month: string; day: 
 
 /** 2 October 2026, 4:12 PM IST — in the viewer's zone for "booked on" */
 export function formatBookedAt(iso: string): string {
-  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' }).format(
-    new Date(iso),
-  );
+  const d = new Date(iso);
+  const date = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+  const time = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(d);
+  // en-IN names Indian Standard Time "IST"; other zones fall back to an offset such as "GMT+1".
+  const zone = pick(new Intl.DateTimeFormat('en-IN', { timeZoneName: 'short' }).formatToParts(d), 'timeZoneName');
+  return `${date}, ${time} ${zone}`.trim();
+}
+
+/** Saturday, 14 November 2026 · 7:30 PM (booking details) */
+export function formatLong(iso: string, tz: string): string {
+  const p = parts(iso, tz, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  return `${pick(p, 'weekday')}, ${pick(p, 'day')} ${pick(p, 'month')} ${pick(p, 'year')} · ${formatTime(iso, tz)}`;
 }
 
 export function seatLabel(seatId: string): string {

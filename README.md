@@ -62,7 +62,7 @@ render.yaml   Single-service deployment blueprint (not deployed yet)
 
 ## How a booking stays correct
 
-`POST /api/events/:eventId/bookings` with body `{ "seatId": "C7" }` and an `Idempotency-Key: <uuid>` header. The user comes from the session cookie only; a `userId` in the body is rejected by the strict schema.
+`POST /api/bookings` with body `{ "eventId": "…", "seatId": "C7" }` and an `Idempotency-Key: <uuid>` header. The user comes from the session cookie only; a `userId` in the body is rejected by the strict schema.
 
 **Database guarantees (the real defence)**
 

@@ -68,7 +68,7 @@ describe('POST /api/bookings — basics', () => {
     const res = await postBooking(agent, { eventId: jazz, seatId: 'A8', userId: victim.user.id });
     expect(res.status).toBe(400);
     expect(res.body.error.details.fieldErrors.userId).toBeDefined();
-    expect(await Seat.findOne({ seatId: 'A8', status: 'booked' }).lean()).toBeNull();
+    expect(await Seat.findOne({ eventId: jazz, seatId: 'A8', status: 'booked' }).lean()).toBeNull();
   });
 
   it('requires a session and a valid Idempotency-Key', async () => {

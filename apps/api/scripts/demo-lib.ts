@@ -100,3 +100,21 @@ export function percentile(values: number[], p: number): number {
   const s = [...values].sort((a, b) => a - b);
   return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))]!;
 }
+
+/** Fail fast with a readable message when an API process is not running (before touching any data). */
+export async function assertTargetsUp(targets: string[]): Promise<void> {
+  const down: string[] = [];
+  for (const t of targets) {
+    try {
+      const res = await fetch(`${t}/api/health`, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) down.push(`${t} (health returned ${res.status})`);
+    } catch {
+      down.push(`${t} (not reachable)`);
+    }
+  }
+  if (down.length) {
+    console.error(`\nAPI not running at: ${down.join(', ')}`);
+    console.error('Start the API first in another terminal (npm run build && npm run start:two), with DEMO_MODE=true in .env, then run this again.');
+    process.exit(1);
+  }
+}

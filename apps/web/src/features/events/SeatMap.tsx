@@ -27,8 +27,15 @@ export function SeatMap({ layout, seats, selected, locked, onSelect }: Props) {
   const refs = useRef(new Map<string, HTMLButtonElement>());
 
   // Keep the selected seat visible inside the horizontally scrolling map on small screens.
+  // Only the map scrolls sideways; the page itself is never scrolled by this.
+  const scrollerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (selected) refs.current.get(selected)?.scrollIntoView?.({ block: 'nearest', inline: 'center' });
+    const seat = selected ? refs.current.get(selected) : undefined;
+    const scroller = scrollerRef.current;
+    if (!seat || !scroller || scroller.scrollWidth <= scroller.clientWidth) return;
+    const seatBox = seat.getBoundingClientRect();
+    const box = scroller.getBoundingClientRect();
+    scroller.scrollLeft += seatBox.left + seatBox.width / 2 - (box.left + box.width / 2);
   }, [selected]);
 
   function move(e: KeyboardEvent, seatId: string) {
@@ -49,7 +56,7 @@ export function SeatMap({ layout, seats, selected, locked, onSelect }: Props) {
   }
 
   return (
-    <div className="relative -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0" data-testid="seat-scroller">
+    <div ref={scrollerRef} className="relative -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0" data-testid="seat-scroller">
       <div className="mx-auto flex w-max flex-col items-center gap-1.5 sm:gap-2">
         <div className="flex h-7 w-full items-center justify-center rounded-sm bg-subtle text-xs font-semibold tracking-[0.06em] text-ink-3 sm:h-8">
           STAGE
@@ -57,7 +64,7 @@ export function SeatMap({ layout, seats, selected, locked, onSelect }: Props) {
         <div role="grid" aria-label="Seat map" aria-disabled={locked || undefined} className="flex flex-col gap-1.5 sm:gap-2">
           {grid.map((rowSeats, ri) => (
             <div role="row" key={layout.rows[ri]} className="flex items-center gap-1.5 sm:gap-2">
-              <span className="sticky left-0 z-10 w-5 bg-surface text-center text-xs font-medium text-ink-3" aria-hidden="true">
+              <span className="sticky left-0 z-10 flex w-5 shrink-0 items-center justify-center self-stretch bg-surface text-xs font-medium text-ink-3 max-sm:-left-4 max-sm:-ml-4 max-sm:w-9 max-sm:pl-4 max-sm:shadow-[6px_0_0_var(--color-surface),12px_0_8px_-4px_var(--color-surface)]" aria-hidden="true">
                 {layout.rows[ri]}
               </span>
               {rowSeats.map((seatId, ci) => {
@@ -92,7 +99,7 @@ export function SeatMap({ layout, seats, selected, locked, onSelect }: Props) {
                     >
                       {isSelected && <Icon name="check" size={12} />}
                       {booked && !isSelected && <Icon name="x" size={12} />}
-                      <span className={booked && !isSelected ? 'line-through' : ''}>{seatId.slice(1)}</span>
+                      <span>{seatId.slice(1)}</span>
                     </button>
                   </div>
                 );

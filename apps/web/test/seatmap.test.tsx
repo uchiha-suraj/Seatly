@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import type { SeatDto } from '@seatly/shared';
+import { availabilityBadge } from '../src/features/events/EventCard';
 import { SeatMap } from '../src/features/events/SeatMap';
 
 const layout = { rows: ['A', 'B'], seatsPerRow: 3 };
@@ -56,5 +57,16 @@ describe('SeatMap', () => {
     render(<Harness locked />);
     await user.click(screen.getByRole('button', { name: 'Seat A1, available' }));
     expect(screen.queryByRole('button', { name: /selected/ })).toBeNull();
+  });
+});
+
+describe('availability badge', () => {
+  it('uses the singular for a one-seat event and "Sold out" at zero', () => {
+    const { rerender } = render(availabilityBadge({ availableSeats: 1, totalSeats: 1 }));
+    expect(screen.getByText('1 of 1 seat left')).toBeTruthy();
+    rerender(availabilityBadge({ availableSeats: 42, totalSeats: 60 }));
+    expect(screen.getByText('42 of 60 seats left')).toBeTruthy();
+    rerender(availabilityBadge({ availableSeats: 0, totalSeats: 60 }));
+    expect(screen.getByText('Sold out')).toBeTruthy();
   });
 });

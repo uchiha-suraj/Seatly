@@ -8,7 +8,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button, ButtonLink } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { formatBookedAt, formatShort } from '../../lib/format';
+import { formatBookedAt, formatLong } from '../../lib/format';
 
 /** Confirmation ("You're booked") right after booking, calmer "Booking details" when revisited. */
 export function BookingDetailsPage() {
@@ -47,7 +47,7 @@ export function BookingDetailsPage() {
   const b = booking.data;
   const rows: [string, string][] = [
     ['Event', b.event.title],
-    ['Date & time', formatShort(b.event.startsAt, b.event.timezone)],
+    ['Date & time', formatLong(b.event.startsAt, b.event.timezone)],
     ['Venue', b.event.venue],
     ['Seat', `${b.seat.seatId} (Row ${b.seat.row}, Seat ${b.seat.number})`],
     ['Booked on', formatBookedAt(b.bookedAt)],

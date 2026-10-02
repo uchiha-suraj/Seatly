@@ -10,7 +10,7 @@ import { loadConfig } from '../src/config';
 import { connectDatabase, disconnectDatabase } from '../src/db/connection';
 import { Booking, IdempotencyKey } from '../src/db/models';
 import { resetDemoEvent } from '../src/db/seed';
-import { args, book, ensureUser, eventIdBySlug } from './demo-lib';
+import { args, assertTargetsUp, book, ensureUser, eventIdBySlug } from './demo-lib';
 
 const opts = args();
 const config = loadConfig();
@@ -19,6 +19,7 @@ if (!config.demoMode) {
   process.exit(1);
 }
 const base = opts.targets.split(',')[0]!.replace(/\/$/, '');
+await assertTargetsUp([base]);
 await connectDatabase(config.mongodbUri);
 const user = await ensureUser(base, 900);
 const eventId = await eventIdBySlug(base, opts.event);

@@ -7,7 +7,7 @@ import { Alert } from '../../components/ui/Alert';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { formatLongRange, formatShort } from '../../lib/format';
+import { formatLongRange, formatShort, formatShortRange } from '../../lib/format';
 import { loginPath } from '../../lib/returnTo';
 import { NotFoundPage } from '../../components/NotFoundPage';
 import { meKey, useMe } from '../auth/useMe';
@@ -165,7 +165,8 @@ export function EventDetailsPage() {
                 <div className="flex flex-col gap-2 text-ink-2 sm:flex-row sm:flex-wrap sm:gap-6">
                   <span className="flex items-center gap-2">
                     <Icon name="calendar" size={18} className="text-ink-3" />
-                    {formatLongRange(ev.startsAt, ev.endsAt, ev.timezone)}
+                    <span className="max-sm:hidden">{formatLongRange(ev.startsAt, ev.endsAt, ev.timezone)}</span>
+                    <span className="sm:hidden">{formatShortRange(ev.startsAt, ev.endsAt, ev.timezone)}</span>
                   </span>
                   <span className="flex items-center gap-2">
                     <Icon name="map-pin" size={18} className="text-ink-3" />
@@ -191,7 +192,8 @@ export function EventDetailsPage() {
                 </h2>
                 {seatData && (
                   <p className="text-sm text-ink-2">
-                    {seatData.availableSeats} of {seatData.totalSeats} seats available · {seats.isFetching ? 'refreshing…' : 'updated just now'}
+                    {seatData.availableSeats} of {seatData.totalSeats}
+                    <span className="max-sm:hidden">{seatData.totalSeats === 1 ? ' seat' : ' seats'}</span> available · {seats.isFetching ? 'refreshing…' : 'updated just now'}
                   </p>
                 )}
               </div>

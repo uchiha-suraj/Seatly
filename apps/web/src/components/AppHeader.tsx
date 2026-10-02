@@ -52,7 +52,7 @@ export function AppHeader() {
               <NavLink to="/bookings" className={({ isActive }) => `${navClass({ isActive })} sm:hidden`}>
                 Bookings
               </NavLink>
-              <Button variant="secondary" className="hidden sm:inline-flex" loading={signOut.isPending} onClick={() => signOut.mutate()}>
+              <Button variant="secondary" className="max-sm:hidden" loading={signOut.isPending} onClick={() => signOut.mutate()}>
                 Log out
               </Button>
               <Button variant="ghost" className="px-3 sm:hidden" loading={signOut.isPending} onClick={() => signOut.mutate()}>
@@ -64,7 +64,7 @@ export function AppHeader() {
               <Link to="/login" className={buttonClass('ghost', 'px-3')}>
                 Log in
               </Link>
-              <Link to="/register" className={buttonClass('secondary', 'hidden sm:inline-flex')}>
+              <Link to="/register" className={buttonClass('secondary', 'max-sm:hidden')}>
                 Create account
               </Link>
             </>

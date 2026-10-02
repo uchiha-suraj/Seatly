@@ -13,7 +13,7 @@ import { loadConfig } from '../src/config';
 import { connectDatabase, disconnectDatabase } from '../src/db/connection';
 import { Booking, IdempotencyKey, Seat } from '../src/db/models';
 import { resetDemoEvent } from '../src/db/seed';
-import { args, book, ensureUsers, eventIdBySlug, percentile, type Shot } from './demo-lib';
+import { args, assertTargetsUp, book, ensureUsers, eventIdBySlug, percentile, type Shot } from './demo-lib';
 
 const opts = args();
 const config = loadConfig();
@@ -25,6 +25,7 @@ const n = Number(opts.users);
 const targets = opts.targets.split(',').map((t) => t.trim().replace(/\/$/, ''));
 const seatId = opts.seat.toUpperCase();
 
+await assertTargetsUp(targets);
 await connectDatabase(config.mongodbUri);
 console.log(`\nSeatly concurrency demonstration — ${n} users, seat ${seatId} of "${opts.event}", ${targets.length} API process(es)`);
 

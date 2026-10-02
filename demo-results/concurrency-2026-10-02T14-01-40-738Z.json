@@ -1,0 +1,38 @@
+{
+  "ranAt": "2026-10-02T14:01:40.738Z",
+  "environment": {
+    "mongodbUri": "mongodb://localhost:27017/seatly?replicaSet=rs0",
+    "targets": [
+      "http://localhost:4001",
+      "http://localhost:4002"
+    ],
+    "node": "v24.18.0"
+  },
+  "users": 100,
+  "event": "demo-last-seat",
+  "seatId": "A1",
+  "responses": {
+    "created201": 1,
+    "seatTaken409": 99,
+    "unavailable503": 0,
+    "unexpected": 0,
+    "unexpectedSamples": []
+  },
+  "perTarget": {
+    "http://localhost:4001": 50,
+    "http://localhost:4002": 50
+  },
+  "latencyMs": {
+    "p50": 1131,
+    "p95": 1209,
+    "max": 1222,
+    "wall": 1226
+  },
+  "database": {
+    "persistedBookingsForSeat": 1,
+    "seatStatus": "booked",
+    "seatBookingIdMatchesBooking": true,
+    "completedKeysForWinner": 1
+  },
+  "pass": true
+}

@@ -7,7 +7,7 @@ import { formatCardDate } from '../../lib/format';
 
 export function availabilityBadge(e: { availableSeats: number; totalSeats: number }) {
   if (e.availableSeats === 0) return <Badge tone="error">Sold out</Badge>;
-  const text = `${e.availableSeats} of ${e.totalSeats} seats left`;
+  const text = `${e.availableSeats} of ${e.totalSeats} ${e.totalSeats === 1 ? 'seat' : 'seats'} left`;
   return <Badge tone={e.availableSeats <= 5 ? 'warning' : 'success'}>{text}</Badge>;
 }
 

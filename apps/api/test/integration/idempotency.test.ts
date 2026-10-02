@@ -24,7 +24,7 @@ describe('idempotent booking', () => {
     expect(retry.headers['idempotent-replayed']).toBe('true');
     expect(first.headers['idempotent-replayed']).toBeUndefined();
     expect(retry.body).toEqual(first.body);
-    expect(await Booking.countDocuments({ seatId: 'D1' })).toBe(1);
+    expect(await Booking.countDocuments({ eventId: jazz, seatId: 'D1' })).toBe(1);
   });
 
   it('rejects the same key with a different payload and leaves the original untouched (AC-18)', async () => {
@@ -36,7 +36,7 @@ describe('idempotent booking', () => {
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe('IDEMPOTENCY_KEY_REUSED');
     expect(await IdempotencyKey.findOne({ key }).lean()).toEqual(before);
-    expect(await Booking.countDocuments({ seatId: 'D3' })).toBe(0);
+    expect(await Booking.countDocuments({ eventId: jazz, seatId: 'D3' })).toBe(0);
   });
 
   it('20 concurrent same-key requests create exactly one booking (AC-19)', async () => {
@@ -53,7 +53,7 @@ describe('idempotent booking', () => {
     const followUp = await postBooking(agent, { eventId: jazz, seatId: 'D6' }, key).expect(201);
     expect(followUp.headers['idempotent-replayed']).toBe('true');
     expect(followUp.body.booking.id).toBe(bookingId);
-    expect(await Booking.countDocuments({ seatId: 'D6' })).toBe(1);
+    expect(await Booking.countDocuments({ eventId: jazz, seatId: 'D6' })).toBe(1);
     const keys = await IdempotencyKey.find({ key }).lean();
     expect(keys).toHaveLength(1);
     expect(keys[0]!.status).toBe('completed');
@@ -102,7 +102,7 @@ describe('idempotent booking', () => {
     const stale = await staleP;
     expect(stale.status).toBe(409);
     expect(stale.body.error.code).toBe('IDEMPOTENCY_IN_PROGRESS');
-    expect(await Booking.countDocuments({ seatId: 'D8' })).toBe(1);
+    expect(await Booking.countDocuments({ eventId: jazz, seatId: 'D8' })).toBe(1);
     const rec = await IdempotencyKey.findOne({ key }).lean();
     expect(rec?.status).toBe('completed');
     expect(rec?.bookingId?.toString()).toBe(takeover.body.booking.id);
