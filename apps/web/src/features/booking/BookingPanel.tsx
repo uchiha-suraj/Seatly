@@ -18,6 +18,7 @@ export type PanelState =
   | 'sessionExpired'
   | 'backFree'
   | 'backTaken'
+  | 'liveTaken'
   | 'soldOut'
   | 'error';
 
@@ -86,6 +87,13 @@ export function BookingPanel({ alertRef, ...p }: Props) {
         return (
           <Alert tone="info" title={`Seat ${seat ?? ''} is no longer available`} ref={alertRef}>
             Someone booked it while you were logging in. We refreshed the seat map — pick another seat.
+          </Alert>
+        );
+      case 'liveTaken':
+        // Polite status, no focus move: it comes from a background refresh, not from the user's action.
+        return (
+          <Alert tone="info" title={`Seat ${seat ?? ''} was just booked`}>
+            Someone else booked it while you were choosing. The seat map is up to date — pick another seat.
           </Alert>
         );
       case 'error':

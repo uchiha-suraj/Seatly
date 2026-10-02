@@ -15,8 +15,10 @@ import { BookingPanel, type PanelState } from '../booking/BookingPanel';
 import { loadPending } from '../booking/pendingAttempt';
 import { useBookingAttempt } from '../booking/useBookingAttempt';
 import { SeatLegend, SeatMap } from './SeatMap';
+import { freshnessLabel, useNow, useSeatPolling } from './useSeatPolling';
 
-type IntentResult = 'backFree' | 'backTaken' | null;
+/** backFree/backTaken: seat checked after login. liveTaken: a refresh showed the selected seat was booked by someone else. */
+type IntentResult = 'backFree' | 'backTaken' | 'liveTaken' | null;
 
 export function EventDetailsPage() {
   const { eventId = '' } = useParams();
@@ -33,11 +35,14 @@ export function EventDetailsPage() {
   const [intent, setIntent] = useState<IntentResult>(null);
   const [intentSeat, setIntentSeat] = useState<string | null>(null);
   const [intentHandled, setIntentHandled] = useState(() => loadPending(eventId) !== null);
+  // Set once this page's own booking succeeds; the page is about to navigate away.
+  const [bookedHere, setBookedHere] = useState(false);
   const alertRef = useRef<HTMLDivElement>(null);
   const resumed = useRef(false);
 
   const attempt = useBookingAttempt(eventId, {
     onSuccess(booking) {
+      setBookedHere(true);
       qc.setQueryData(['booking', booking.id], booking);
       void qc.invalidateQueries({ queryKey: ['events'] });
       void qc.invalidateQueries({ queryKey: ['myBookings'] });
@@ -53,6 +58,20 @@ export function EventDetailsPage() {
       setSelected(null);
     },
   });
+
+  useSeatPolling(eventId, attempt.busy);
+  const now = useNow();
+  // Background polls stay silent; only a refresh the user asked for shows "refreshing…".
+  const [manualRefresh, setManualRefresh] = useState(false);
+  async function refreshSeats() {
+    setManualRefresh(true);
+    try {
+      await seats.refetch();
+    } finally {
+      setManualRefresh(false);
+    }
+  }
+  const refreshing = manualRefresh && seats.isFetching;
 
   const returnTo = (seatId: string | null) => `/events/${eventId}${seatId ? `?seat=${encodeURIComponent(seatId)}` : ''}`;
 
@@ -72,6 +91,19 @@ export function EventDetailsPage() {
     }
   }
 
+  // A background refresh found the selected seat booked by someone else: drop it and say so.
+  // Only while idle — during or after a booking attempt the attempt's own outcome is shown.
+  const [checkedAt, setCheckedAt] = useState(0);
+  if (intentHandled && !bookedHere && seats.data && seats.dataUpdatedAt !== checkedAt) {
+    setCheckedAt(seats.dataUpdatedAt);
+    const gone = selected && seats.data.seats.some((s) => s.seatId === selected && s.status === 'booked');
+    if (gone && attempt.state.status === 'idle' && !loadPending(eventId)) {
+      setIntent('liveTaken');
+      setIntentSeat(selected);
+      setSelected(null);
+    }
+  }
+
   function select(seatId: string | null) {
     setSelected(seatId);
     setIntent(null);
@@ -82,7 +114,7 @@ export function EventDetailsPage() {
 
   // Mirror the selection in the URL (?seat=A7) so a refresh or the login round-trip keeps the intent.
   useEffect(() => {
-    if (!intentHandled) return;
+    if (!intentHandled || bookedHere) return;
     const current = params.get('seat');
     if ((current ?? null) === selected) return;
     setParams(
@@ -94,7 +126,7 @@ export function EventDetailsPage() {
       },
       { replace: true, state: location.state },
     );
-  }, [selected, intentHandled, params, setParams, location.state]);
+  }, [selected, intentHandled, bookedHere, params, setParams, location.state]);
 
   // Resume an attempt interrupted by a reload: same seat, same idempotency key.
   useEffect(() => {
@@ -139,12 +171,13 @@ export function EventDetailsPage() {
     if (st.status === 'sessionExpired') return 'sessionExpired';
     if (st.status === 'error') return 'error';
     if (intent === 'backTaken' && !selected) return 'backTaken';
+    if (intent === 'liveTaken' && !selected) return 'liveTaken';
     if (selected && !me.data) return 'loggedOut';
     if (selected) return intent === 'backFree' ? 'backFree' : 'selected';
     if (seatData!.availableSeats === 0) return 'soldOut';
     return 'noSeat';
   })();
-  const panelSeat = st.status !== 'idle' ? st.seatId : panelState === 'backTaken' ? intentSeat : selected;
+  const panelSeat = st.status !== 'idle' ? st.seatId : panelState === 'backTaken' || panelState === 'liveTaken' ? intentSeat : selected;
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-0 pb-72 sm:px-8 lg:px-16 lg:pt-6 lg:pb-16">
@@ -193,17 +226,17 @@ export function EventDetailsPage() {
                 {seatData && (
                   <p className="text-sm text-ink-2">
                     {seatData.availableSeats} of {seatData.totalSeats}
-                    <span className="max-sm:hidden">{seatData.totalSeats === 1 ? ' seat' : ' seats'}</span> available · {seats.isFetching ? 'refreshing…' : 'updated just now'}
+                    <span className="max-sm:hidden">{seatData.totalSeats === 1 ? ' seat' : ' seats'}</span> available · {refreshing ? 'refreshing…' : freshnessLabel(seats.dataUpdatedAt, now)}
                   </p>
                 )}
               </div>
               <button
                 type="button"
-                onClick={() => void seats.refetch()}
+                onClick={() => void refreshSeats()}
                 className="flex size-11 items-center justify-center gap-1.5 rounded-md border border-line text-sm font-medium text-brand hover:bg-brand-subtle lg:w-auto lg:border-0 lg:px-3"
                 aria-label="Refresh seats"
               >
-                <Icon name="refresh" size={18} className={seats.isFetching ? 'animate-spin' : ''} />
+                <Icon name="refresh" size={18} className={refreshing ? 'animate-spin' : ''} />
                 <span className="hidden lg:inline">Refresh</span>
               </button>
             </div>

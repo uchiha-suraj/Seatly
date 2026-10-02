@@ -91,7 +91,9 @@ If a commit outcome is unknown the key is **not** released, so a retry cannot do
 | first request still running (lease valid) | 409 `IDEMPOTENCY_IN_PROGRESS`, `Retry-After: 1` |
 | lease expired (crashed worker) | Takeover with a new `attemptId`; the old worker's writes are fenced out |
 
-**Client behaviour** — 10 s timeout; on timeout / network error / 503 it retries automatically at +1 s and +3 s (+0–250 ms jitter) **with the same key**; `IN_PROGRESS` is polled up to 5 times on a separate budget. The key lives in `sessionStorage` until the outcome is known, so a refresh resumes the same attempt. A new key is created only for a new seat choice. Seat availability on screen is advisory; the server decides.
+**Client behaviour** — 10 s timeout; on timeout / network error / 503 it retries automatically at +1 s and +3 s (+0–250 ms jitter) **with the same key**; `IN_PROGRESS` is polled up to 5 times on a separate budget. The key lives in `sessionStorage` until the outcome is known, so a refresh resumes the same attempt. A new key is created only for a new seat choice.
+
+**Live seat map** — while the event page is visible, the seat map is re-fetched every 10 s and whenever the window regains focus; hidden tabs don't poll, and polling pauses while a booking request is in flight. If a refresh shows that the selected seat was booked by someone else, the selection is cleared with a notice. This only keeps the display fresh: availability on screen stays advisory, and the server's conditional update decides every booking.
 
 ## Tests
 
