@@ -28,6 +28,7 @@ jobs:
           NODE_ENV: production
           MONGODB_URI: mongodb://localhost:27017/seatly?replicaSet=rs0
           APP_ORIGIN: http://localhost:4001
+          COOKIE_SECURE: "true" # required in production; the demo reads Set-Cookie itself
           DEMO_MODE: "true"
           ARGON2_MEMORY_KIB: "19456"
           LOG_LEVEL: warn

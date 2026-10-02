@@ -35,4 +35,11 @@ describe('loadConfig', () => {
   it('rejects invalid values', () => {
     expect(() => loadConfig({ MONGODB_URI: 'x', COOKIE_SECURE: 'maybe' })).toThrow(/COOKIE_SECURE/);
   });
+
+  it('refuses a production start without APP_ORIGIN or secure cookies', () => {
+    const prod = { NODE_ENV: 'production', MONGODB_URI: 'x', COOKIE_SECURE: 'true' };
+    expect(() => loadConfig(prod)).toThrow(/APP_ORIGIN is required/);
+    expect(() => loadConfig({ ...prod, APP_ORIGIN: 'https://seatly.onrender.com', COOKIE_SECURE: 'false' })).toThrow(/COOKIE_SECURE must be true/);
+    expect(loadConfig({ ...prod, APP_ORIGIN: 'https://seatly.onrender.com/' }).appOrigin).toBe('https://seatly.onrender.com');
+  });
 });

@@ -5,7 +5,8 @@ services:
     runtime: node
     region: singapore
     plan: free
-    buildCommand: npm ci && npm run build
+    # NODE_ENV=production makes npm skip devDependencies, but the build needs them (vite, tsc, esbuild).
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start
     healthCheckPath: /api/health
     envVars:

@@ -124,7 +124,19 @@ The demo resets the 1-seat event, logs in N users (not timed), releases all requ
 
 ## Deployment
 
-`render.yaml` describes one web service (API serving the built SPA) that needs a `MONGODB_URI` pointing at a replica set such as MongoDB Atlas. **It has not been deployed.**
+One Render web service runs the API and serves the built SPA from the same origin, so the session cookie stays first-party. MongoDB Atlas provides the replica set (every Atlas cluster, including the free tier, is one).
+
+1. **Atlas:** create a free cluster near Singapore, a database user with a generated password, and a Network Access entry. Render's free plan has no fixed outbound IP, so this entry is `0.0.0.0/0`; the strong password is what protects the database. Copy the connection string and add the database name: `mongodb+srv://<user>:<password>@<cluster>/seatly?retryWrites=true&w=majority`.
+2. **Seed Atlas from your machine** (Render's free plan has no shell):
+   ```bash
+   MONGODB_URI='mongodb+srv://…/seatly?retryWrites=true&w=majority' npm run db:check
+   MONGODB_URI='mongodb+srv://…/seatly?retryWrites=true&w=majority' npm run seed
+   ```
+   A variable set on the command line overrides `.env`.
+3. **Render:** New → Blueprint → pick this repository. `render.yaml` creates the `seatly` service. When asked, set `MONGODB_URI` (the string above) and `APP_ORIGIN` (the service URL, e.g. `https://seatly.onrender.com`; if the name is taken, set it once Render shows the real URL and redeploy).
+4. **Check:** `https://<your-service>.onrender.com/api/health` returns `{"status":"ok","db":"ok","replicaSet":"…"}`, then register, book a seat and open My bookings.
+
+Notes: the build installs devDependencies on purpose (`npm ci --include=dev`), because `NODE_ENV=production` would otherwise skip the tools the build needs. Free services sleep after a period without traffic, so the first request after a pause is slow. `DEMO_MODE` stays `false` in production: the demo scripts reset data and are for local runs only.
 
 ## Credits
 

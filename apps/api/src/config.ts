@@ -49,6 +49,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error(`Invalid environment configuration:\n${lines.join('\n')}`);
   }
   const e = parsed.data;
+  if (e.NODE_ENV === 'production') {
+    // Fail at startup rather than rejecting every login and booking as cross-origin later.
+    if (!env.APP_ORIGIN) throw new Error('Invalid environment configuration:\n  APP_ORIGIN is required in production (the public https URL).');
+    if (!e.COOKIE_SECURE) throw new Error('Invalid environment configuration:\n  COOKIE_SECURE must be true in production.');
+  }
   return {
     nodeEnv: e.NODE_ENV,
     port: e.PORT,
