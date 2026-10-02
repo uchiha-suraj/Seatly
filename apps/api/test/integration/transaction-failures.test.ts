@@ -72,11 +72,27 @@ describe('MongoDB-level faults (failCommand failpoint)', () => {
   it('retries a commit whose result is unknown and books once', async () => {
     const { agent } = await newUser(t.server);
     const key = randomUUID();
-    await failPoint(t.appName, { times: 1 }, { failCommands: ['commitTransaction'], errorLabels: ['UnknownTransactionCommitResult'], errorCode: 91 });
+    // MaxTimeMSExpired (50) on commit is the usual "unknown result": the server stays healthy,
+    // so the retry path is exercised without depending on how fast the driver rediscovers a primary.
+    await failPoint(t.appName, { times: 1 }, { failCommands: ['commitTransaction'], errorLabels: ['UnknownTransactionCommitResult'], errorCode: 50 });
     const res = await postBooking(agent, { eventId: jazz, seatId: 'F5' }, key);
     expect(res.status).toBe(201);
     expect(await seatState('F5')).toMatchObject({ status: 'booked', bookings: 1 });
     expect((await IdempotencyKey.findOne({ key }).lean())?.status).toBe('completed');
+  });
+
+  it('a primary shutting down during commit never double-books (201, or a safe 503 that keeps the key)', async () => {
+    const { agent } = await newUser(t.server);
+    const key = randomUUID();
+    // ShutdownInProgress (91) makes the driver rediscover the primary; how long that takes depends
+    // on the machine, so the request may finish within the deadline or end as a retryable 503.
+    await failPoint(t.appName, { times: 1 }, { failCommands: ['commitTransaction'], errorLabels: ['UnknownTransactionCommitResult'], errorCode: 91 });
+    const res = await postBooking(agent, { eventId: jazz, seatId: 'F9' }, key);
+    expect([201, 503]).toContain(res.status);
+    const state = await seatState('F9');
+    expect(state.bookings).toBeLessThanOrEqual(1);
+    if (res.status === 201) expect(state).toMatchObject({ status: 'booked', bookings: 1 });
+    // afterEach checks the full invariant: booked seat ⇔ exactly one booking.
   });
 
   it('a crash after commit (response lost) is recovered by a same-key retry: same booking, no duplicate', async () => {

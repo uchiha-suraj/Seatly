@@ -5,7 +5,8 @@ import { meKey, useMe } from '../features/auth/useMe';
 import { Button, buttonClass } from './ui/Button';
 import { Icon } from './ui/Icon';
 
-const navClass = ({ isActive }: { isActive: boolean }) => buttonClass('ghost', `px-3 ${isActive ? 'underline underline-offset-8 decoration-2' : ''}`);
+// Matches Figma: no visual active marker; NavLink still sets aria-current="page" for assistive tech.
+const navClass = () => buttonClass('ghost', 'px-3');
 
 export function AppHeader() {
   const me = useMe();
@@ -49,7 +50,7 @@ export function AppHeader() {
                 <Icon name="user" size={18} />
                 {user.name}
               </span>
-              <NavLink to="/bookings" className={({ isActive }) => `${navClass({ isActive })} sm:hidden`}>
+              <NavLink to="/bookings" className={`${navClass()} sm:hidden`}>
                 Bookings
               </NavLink>
               <Button variant="secondary" className="max-sm:hidden" loading={signOut.isPending} onClick={() => signOut.mutate()}>
