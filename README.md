@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/uchiha-suraj/Seatly/actions/workflows/ci.yml/badge.svg)](https://github.com/uchiha-suraj/Seatly/actions/workflows/ci.yml)
 
-Seatly is a full-stack event-booking app built around one hard problem: **one available seat, hundreds of competing users, exactly one successful booking.** It is a portfolio project, so the interesting part is not the catalogue but the guarantees: no double bookings under concurrency, safe retries over a flaky network, and a UI that tells people the truth about what happened.
+Seatly is a full-stack event-booking app built around one hard problem: **one available seat, hundreds of competing users, exactly one successful booking.** The interesting part is not the catalogue but the guarantees: no double bookings under concurrency, safe retries over a flaky network, and a UI that tells people the truth about what happened.
 
 - **Live demo:** https://seatly-02yb.onrender.com (free Render instance: the first request after a quiet period can take about 50 s)
 - **Design (Figma):** [Seatly V1 — design system, 7 screens at 1440 and 390 px, 29 state frames](https://www.figma.com/design/idjCTBnahtTeUNDxIVyHKa)
@@ -175,7 +175,7 @@ After every integration test, a check scans the whole database: a seat is booked
 
 One Render web service runs the API and serves the built React app from the same origin, so the session cookie stays first-party. MongoDB Atlas provides the replica set (every Atlas cluster, including the free tier, is one).
 
-1. **Atlas:** create a project and a free cluster near Singapore, a database user with a generated password, and a Network Access entry. Render's free plan has no fixed outbound IP, so this entry is `0.0.0.0/0`; the strong password is what protects the database. Use the connection string with the database name: `mongodb+srv://<user>:<password>@<cluster>/seatly?retryWrites=true&w=majority`.
+1. **Atlas:** create a project and a free cluster, a database user with a generated password, and a Network Access entry. Render's free plan has no fixed outbound IP, so this entry is `0.0.0.0/0`; the strong password is what protects the database. Use the connection string with the database name: `mongodb+srv://<user>:<password>@<cluster>/seatly?retryWrites=true&w=majority`.
 2. **Seed Atlas from your machine** (Render's free plan has no shell). A variable set on the command line overrides `.env`:
    ```bash
    MONGODB_URI='…' npm run db:check
