@@ -23,7 +23,7 @@ jobs:
         env:
           MONGODB_URI_TEST: mongodb://localhost:27017/?replicaSet=rs0
       - run: npm run build
-      - name: Concurrency smoke test (100 users, two API processes)
+      - name: Concurrency demo, AC-22 (300 users, two API processes)
         env:
           NODE_ENV: production
           MONGODB_URI: mongodb://localhost:27017/seatly?replicaSet=rs0
@@ -36,7 +36,7 @@ jobs:
           npm run seed
           npm run start:two &
           npx --yes wait-on@8 -t 30000 http://localhost:4001/api/health http://localhost:4002/api/health
-          npm run demo:concurrency -- --users 100 --targets http://localhost:4001,http://localhost:4002
+          npm run demo:concurrency -- --users 300 --targets http://localhost:4001,http://localhost:4002
           npm run demo:idempotency -- --targets http://localhost:4001
       - name: Keep demo reports
         if: always()

@@ -26,34 +26,35 @@ afterEach(() => {
 describe('seat map polling', () => {
   it('shows seats booked by someone else without a manual refresh', async () => {
     renderApp(page);
-    await screen.findByRole('button', { name: 'Seat A3, available' });
+    await screen.findByRole('button', { name: 'Row A, seat 3, available' });
     db.booked.add('A3');
-    expect(await screen.findByRole('button', { name: 'Seat A3, booked' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Row A, seat 3, booked' })).toBeInTheDocument();
   });
 
   it('drops a selected seat that someone else booked, and says so', async () => {
     const user = userEvent.setup();
     renderApp(page);
-    await user.click(await screen.findByRole('button', { name: 'Seat A1, available' }));
+    await user.click(await screen.findByRole('button', { name: 'Row A, seat 1, available' }));
     expect(screen.getByRole('button', { name: 'Book seat A1' })).toBeInTheDocument();
 
     db.booked.add('A1');
 
     expect(await screen.findByText('Seat A1 was just booked')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Seat A1, booked' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Row A, seat 1, booked' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Book seat A1' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Select a seat to continue' })).toBeDisabled();
     // A background refresh must not steal focus.
     expect(document.activeElement).not.toBe(screen.getByText('Seat A1 was just booked').closest('[role]'));
     // Picking another seat clears the notice.
-    await user.click(screen.getByRole('button', { name: 'Seat B1, available' }));
+    await user.click(screen.getByRole('button', { name: 'Row B, seat 1, available' }));
     expect(screen.queryByText('Seat A1 was just booked')).toBeNull();
   });
 
   it('does not poll while the tab is hidden', async () => {
     renderApp(page);
-    await screen.findByRole('button', { name: 'Seat A1, available' });
+    await screen.findByRole('button', { name: 'Row A, seat 1, available' });
     setVisibility('hidden');
+    await sleep(150); // let a request already in flight finish before counting
     const before = db.seatFetches;
     await sleep(300);
     expect(db.seatFetches).toBe(before);
@@ -72,7 +73,7 @@ describe('seat map polling', () => {
     };
     const user = userEvent.setup();
     renderApp(page);
-    await user.click(await screen.findByRole('button', { name: 'Seat A1, available' }));
+    await user.click(await screen.findByRole('button', { name: 'Row A, seat 1, available' }));
     await user.click(screen.getByRole('button', { name: 'Book seat A1' }));
     expect(await screen.findByRole('heading', { name: 'You’re booked' })).toBeInTheDocument();
     expect(inFlightFetches).toBe(0);
@@ -81,13 +82,13 @@ describe('seat map polling', () => {
   it('refreshes when the window regains focus (two windows side by side)', async () => {
     seatPollConfig.intervalMs = 60_000;
     renderApp(page);
-    await screen.findByRole('button', { name: 'Seat A1, available' });
+    await screen.findByRole('button', { name: 'Row A, seat 1, available' });
     await sleep(20);
     const before = db.seatFetches;
     db.booked.add('A1');
     fireEvent.focus(window);
     await waitFor(() => expect(db.seatFetches).toBe(before + 1));
-    expect(await screen.findByRole('button', { name: 'Seat A1, booked' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Row A, seat 1, booked' })).toBeInTheDocument();
   });
 });
 

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router';
+import { Navigate, useLocation, useSearchParams } from 'react-router';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { loginPath } from '../../lib/returnTo';
+import { loginPath, safeReturnTo } from '../../lib/returnTo';
 import { useMe } from './useMe';
 
 function PageSkeleton() {
@@ -22,9 +22,18 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+/**
+ * Log in / register are for guests. A signed-in visitor goes to the page they were heading to
+ * (`returnTo`), not home: right after a successful login this guard and the form's own navigate
+ * race, and both must land on the same place with the same state.
+ */
 export function GuestOnly({ children }: { children: ReactNode }) {
   const me = useMe();
+  const [params] = useSearchParams();
   if (me.isPending) return <PageSkeleton />;
-  if (me.data) return <Navigate to="/" replace />;
+  if (me.data) {
+    const returnTo = safeReturnTo(params.get('returnTo'));
+    return <Navigate to={returnTo ?? '/'} replace state={returnTo ? { fromAuth: true } : undefined} />;
+  }
   return <>{children}</>;
 }

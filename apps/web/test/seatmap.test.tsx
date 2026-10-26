@@ -23,18 +23,18 @@ describe('SeatMap', () => {
   it('labels seats with their state and toggles one seat at a time', async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    expect(screen.getByRole('button', { name: 'Seat A2, booked' })).toHaveAttribute('aria-disabled', 'true');
-    await user.click(screen.getByRole('button', { name: 'Seat A1, available' }));
-    expect(screen.getByRole('button', { name: 'Seat A1, selected' })).toHaveAttribute('aria-pressed', 'true');
-    await user.click(screen.getByRole('button', { name: 'Seat B3, available' }));
-    expect(screen.getByRole('button', { name: 'Seat B3, selected' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Seat A1, available' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'Row A, seat 2, booked' })).toHaveAttribute('aria-disabled', 'true');
+    await user.click(screen.getByRole('button', { name: 'Row A, seat 1, available' }));
+    expect(screen.getByRole('button', { name: 'Row A, seat 1, selected' })).toHaveAttribute('aria-pressed', 'true');
+    await user.click(screen.getByRole('button', { name: 'Row B, seat 3, available' }));
+    expect(screen.getByRole('button', { name: 'Row B, seat 3, selected' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Row A, seat 1, available' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('ignores clicks on booked seats', async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    await user.click(screen.getByRole('button', { name: 'Seat A2, booked' }));
+    await user.click(screen.getByRole('button', { name: 'Row A, seat 2, booked' }));
     expect(screen.queryByRole('button', { name: /selected/ })).toBeNull();
   });
 
@@ -42,20 +42,20 @@ describe('SeatMap', () => {
     const user = userEvent.setup();
     render(<Harness />);
     await user.tab();
-    expect(screen.getByRole('button', { name: 'Seat A1, available' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Row A, seat 1, available' })).toHaveFocus();
     await user.keyboard('{ArrowRight}');
-    expect(screen.getByRole('button', { name: 'Seat A2, booked' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Row A, seat 2, booked' })).toHaveFocus();
     await user.keyboard('{ArrowDown}');
-    expect(screen.getByRole('button', { name: 'Seat B2, available' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Row B, seat 2, available' })).toHaveFocus();
     await user.keyboard('{Enter}');
-    expect(screen.getByRole('button', { name: 'Seat B2, selected' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Row B, seat 2, selected' })).toHaveFocus();
     expect(screen.getAllByRole('button').filter((b) => b.tabIndex === 0)).toHaveLength(1);
   });
 
   it('cannot change the selection while locked', async () => {
     const user = userEvent.setup();
     render(<Harness locked />);
-    await user.click(screen.getByRole('button', { name: 'Seat A1, available' }));
+    await user.click(screen.getByRole('button', { name: 'Row A, seat 1, available' }));
     expect(screen.queryByRole('button', { name: /selected/ })).toBeNull();
   });
 });

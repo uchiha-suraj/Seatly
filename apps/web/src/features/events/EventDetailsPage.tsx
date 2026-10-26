@@ -56,6 +56,8 @@ export function EventDetailsPage() {
     },
     onAbandoned() {
       setSelected(null);
+      // A BOOKING_CLOSED answer means the event started while the page was open.
+      void event.refetch();
     },
   });
 
@@ -161,12 +163,15 @@ export function EventDetailsPage() {
   const seatData = seats.data;
   const loading = !ev || !seatData || me.isPending;
   const st = attempt.state;
+  // Booking closes when the event starts (AC-28): from the event data, or from the API's answer.
+  const closed = (ev && !ev.bookingOpen) || (st.status === 'error' && st.code === 'BOOKING_CLOSED');
 
   const panelState: PanelState = (() => {
     if (loading) return 'loading';
     if (st.status === 'submitting') return 'submitting';
     if (st.status === 'retrying') return 'retrying';
     if (st.status === 'retryFailed') return 'retryFailed';
+    if (closed) return 'closed';
     if (st.status === 'conflict') return 'conflict';
     if (st.status === 'sessionExpired') return 'sessionExpired';
     if (st.status === 'error') return 'error';
@@ -242,7 +247,7 @@ export function EventDetailsPage() {
             </div>
             <SeatLegend />
             {seatData ? (
-              <SeatMap layout={seatData.layout} seats={seatData.seats} selected={selected} locked={attempt.busy} onSelect={(s) => select(s)} />
+              <SeatMap layout={seatData.layout} seats={seatData.seats} selected={selected} locked={attempt.busy || !!closed} onSelect={(s) => select(s)} />
             ) : (
               <Skeleton className="h-72 w-full rounded-lg" />
             )}

@@ -19,6 +19,7 @@ const envSchema = z.object({
   AUTH_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(10),
   ARGON2_MEMORY_KIB: z.coerce.number().int().min(8192).default(65536),
   DEMO_MODE: bool.default(false),
+  DEMO_ROLLING_DATES: bool.default(false),
   SERVE_WEB_DIST: bool.default(false),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
@@ -38,6 +39,8 @@ export type Config = {
   authRateLimitPerMin: number;
   argon2MemoryKiB: number;
   demoMode: boolean;
+  /** Move started demo events forward at startup and hourly (live demo only). */
+  demoRollingDates: boolean;
   serveWebDist: boolean;
   logLevel: string;
 };
@@ -69,6 +72,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     authRateLimitPerMin: e.AUTH_RATE_LIMIT_PER_MIN,
     argon2MemoryKiB: e.ARGON2_MEMORY_KIB,
     demoMode: e.DEMO_MODE,
+    demoRollingDates: e.DEMO_ROLLING_DATES,
     serveWebDist: e.SERVE_WEB_DIST,
     logLevel: e.LOG_LEVEL,
   };

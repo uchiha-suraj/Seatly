@@ -22,7 +22,7 @@ afterEach(() => {
 
 async function pickAndBook(seat: string) {
   const user = userEvent.setup();
-  await user.click(await screen.findByRole('button', { name: `Seat ${seat}, available` }));
+  await user.click(await screen.findByRole('button', { name: `Row ${seat.slice(0, 1)}, seat ${seat.slice(1)}, available` }));
   await user.click(screen.getByRole('button', { name: `Book seat ${seat}` }));
   return user;
 }
@@ -47,7 +47,7 @@ describe('booking from the event page', () => {
     await pickAndBook('B1');
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Seat B1 was just taken');
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Seat B1, booked' })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Row B, seat 1, booked' })).toBeInTheDocument());
     expect(db.seatFetches).toBeGreaterThanOrEqual(2);
     expect(screen.queryByRole('button', { name: /, selected$/ })).toBeNull();
     expect(screen.getByRole('button', { name: 'Select a seat to continue' })).toBeDisabled();
@@ -124,7 +124,7 @@ describe('login and return (AC-14) and session expiry (AC-15)', () => {
     resetDb({ me: null });
     const { router } = renderApp(page);
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: 'Seat A1, available' }));
+    await user.click(await screen.findByRole('button', { name: 'Row A, seat 1, available' }));
     expect(screen.getByText(/doesn’t hold it/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Log in to book A1' }));
     expect(router.state.location.pathname).toBe('/login');
@@ -136,7 +136,7 @@ describe('login and return (AC-14) and session expiry (AC-15)', () => {
   it('after login restores the seat only if it is still available, without booking', async () => {
     renderApp(`${page}?seat=A3`, { fromAuth: true });
     expect(await screen.findByText('Seat A3 is still available')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Seat A3, selected' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Row A, seat 3, selected' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Book seat A3' })).toBeEnabled();
     expect(db.bookingKeys).toHaveLength(0);
   });
@@ -186,6 +186,17 @@ describe('auth pages and guards', () => {
     await user.click(screen.getByRole('button', { name: 'Log in' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/bookings'));
     expect(await screen.findByText('No bookings yet')).toBeInTheDocument();
+  });
+
+  it('sends a signed-in visitor of /login to returnTo, not home (no race with the login redirect)', async () => {
+    const { router } = renderApp(`/login?returnTo=${encodeURIComponent('/bookings')}`);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/bookings'));
+    expect(router.state.location.state).toEqual({ fromAuth: true });
+  });
+
+  it('ignores an unsafe returnTo and goes home', async () => {
+    const { router } = renderApp(`/login?returnTo=${encodeURIComponent('//evil.example')}`);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
   });
 
   it('validates the registration form on submit and focuses the first invalid field', async () => {

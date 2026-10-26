@@ -20,6 +20,7 @@ export type PanelState =
   | 'backTaken'
   | 'liveTaken'
   | 'soldOut'
+  | 'closed'
   | 'error';
 
 interface Props {
@@ -96,6 +97,12 @@ export function BookingPanel({ alertRef, ...p }: Props) {
             Someone else booked it while you were choosing. The seat map is up to date — pick another seat.
           </Alert>
         );
+      case 'closed':
+        return (
+          <Alert tone="info" title="Booking has closed" ref={alertRef}>
+            This event has already started, so seats can no longer be booked.
+          </Alert>
+        );
       case 'error':
         return (
           <Alert tone="error" title="That booking didn’t go through" urgent ref={alertRef}>
@@ -161,6 +168,12 @@ export function BookingPanel({ alertRef, ...p }: Props) {
             Log in again
           </Button>
         );
+      case 'closed':
+        return (
+          <Button className="w-full" onClick={p.onBrowse}>
+            Browse upcoming events
+          </Button>
+        );
       case 'soldOut':
         return (
           <>
@@ -202,24 +215,26 @@ export function BookingPanel({ alertRef, ...p }: Props) {
             <p className="text-sm text-ink-2">{p.eventLine}</p>
           </div>
           {alert}
-          <div className="flex items-center gap-3 rounded-md bg-subtle p-3 lg:flex-col lg:items-start lg:gap-1 lg:p-4">
-            {hasSeat ? (
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold tracking-[0.06em] text-ink-3">SELECTED SEAT</span>
-                <span className="flex items-center gap-2.5">
-                  <span className="text-2xl leading-8 font-semibold lg:text-[32px] lg:leading-10">{seat}</span>
-                  <span className="text-sm text-ink-2">{seatLabel(seat)}</span>
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-0.5">
-                <span className="font-semibold">{p.state === 'soldOut' ? 'Sold out' : 'No seat selected'}</span>
-                <span className="text-sm text-ink-2">
-                  {p.state === 'soldOut' ? `All ${p.totalSeats} seats are booked.` : 'Choose an available seat on the map.'}
-                </span>
-              </div>
-            )}
-          </div>
+          {p.state !== 'closed' && (
+            <div className="flex items-center gap-3 rounded-md bg-subtle p-3 lg:flex-col lg:items-start lg:gap-1 lg:p-4">
+              {hasSeat ? (
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold tracking-[0.06em] text-ink-3">SELECTED SEAT</span>
+                  <span className="flex items-center gap-2.5">
+                    <span className="text-2xl leading-8 font-semibold lg:text-[32px] lg:leading-10">{seat}</span>
+                    <span className="text-sm text-ink-2">{seatLabel(seat)}</span>
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-semibold">{p.state === 'soldOut' ? 'Sold out' : 'No seat selected'}</span>
+                  <span className="text-sm text-ink-2">
+                    {p.state === 'soldOut' ? `All ${p.totalSeats} seats are booked.` : 'Choose an available seat on the map.'}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
           {(p.state === 'selected' || p.state === 'loggedOut' || p.state === 'backFree') && (
             <p className="flex gap-2 text-sm text-ink-2">
               <Icon name="info" size={16} className="mt-0.5 shrink-0 text-ink-3" />

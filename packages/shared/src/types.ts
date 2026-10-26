@@ -16,6 +16,8 @@ export interface EventSummaryDto {
   venue: string;
   totalSeats: number;
   availableSeats: number;
+  /** False once the event has started: the API then rejects bookings with 409 BOOKING_CLOSED. */
+  bookingOpen: boolean;
 }
 
 export interface SeatLayout {

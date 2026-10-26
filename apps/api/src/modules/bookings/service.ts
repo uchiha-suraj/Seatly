@@ -8,6 +8,7 @@ import type { Clock } from '../../lib/clock';
 import { bookingFingerprint, newBookingReference } from '../../lib/crypto';
 import { AppError, errorBody, hasErrorLabel, isDuplicateKey } from '../../lib/errors';
 import type { Faults } from '../../lib/faults';
+import { isBookingOpen } from '../events/service';
 import { toBookingDto } from './dto';
 import { IdempotencyStore, LeaseLostError, type ClaimedKey, type StoredResponse } from './idempotency';
 
@@ -98,6 +99,9 @@ export class BookingService {
     ]);
     if (!user) throw new AppError('UNAUTHENTICATED', 'Please log in to continue.');
     if (!event) return this.finalize(ctx, 404, 'EVENT_NOT_FOUND', 'We couldn’t find that event.');
+    if (!isBookingOpen(event, this.clock.now())) {
+      return this.finalize(ctx, 409, 'BOOKING_CLOSED', 'Booking has closed: this event has already started.');
+    }
 
     const seat = await Seat.findOne({ eventId, seatId: ctx.input.seatId }).lean();
     if (!seat) return this.finalize(ctx, 404, 'SEAT_NOT_FOUND', `Seat ${ctx.input.seatId} doesn’t exist for this event.`);

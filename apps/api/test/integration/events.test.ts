@@ -35,7 +35,7 @@ describe('GET /api/events', () => {
     expect(bySlug['city-symphony-autumn-gala']).toMatchObject({ availableSeats: 3 });
     expect(bySlug['demo-last-seat']).toMatchObject({ availableSeats: 1, totalSeats: 1 });
     expect(Object.keys(events[0]!).sort()).toEqual(
-      ['availableSeats', 'endsAt', 'id', 'imageAlt', 'imageUrl', 'slug', 'startsAt', 'timezone', 'title', 'totalSeats', 'venue'].sort(),
+      ['availableSeats', 'bookingOpen', 'endsAt', 'id', 'imageAlt', 'imageUrl', 'slug', 'startsAt', 'timezone', 'title', 'totalSeats', 'venue'].sort(),
     );
   });
 });

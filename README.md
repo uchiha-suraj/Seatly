@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/uchiha-suraj/Seatly/actions/workflows/ci.yml/badge.svg)](https://github.com/uchiha-suraj/Seatly/actions/workflows/ci.yml)
 
-Seatly is a full-stack event-booking app built around one hard problem: **one available seat, hundreds of competing users, exactly one successful booking.** It is a portfolio project, so the interesting part is not the catalogue but the guarantees: no double bookings under concurrency, safe retries over a flaky network, and a UI that tells people the truth about what happened.
+Seatly is a full-stack event-booking app built around one hard problem: **one available seat, hundreds of competing users, exactly one successful booking.** The interesting part is not the catalogue but the guarantees: no double bookings under concurrency, safe retries over a flaky network, and a UI that tells people the truth about what happened.
 
 - **Live demo:** https://seatly-02yb.onrender.com (free Render instance: the first request after a quiet period can take about 50 s)
 - **Design (Figma):** [Seatly V1 — design system, 7 screens at 1440 and 390 px, 29 state frames](https://www.figma.com/design/idjCTBnahtTeUNDxIVyHKa)
@@ -19,7 +19,7 @@ Seatly is a full-stack event-booking app built around one hard problem: **one av
 
 ## What V1 does
 
-- Browse upcoming events with live seat counts; open an event and pick a seat on a keyboard-accessible seat map (roving focus, arrow keys, Home/End).
+- Browse upcoming events with live seat counts (events that have started drop off the list, and booking closes at the start time); open an event and pick a seat on a keyboard-accessible seat map (roving focus, arrow keys, Home/End).
 - Register, log in and log out with a cookie session. A seat chosen before logging in is kept only as *intent*: after login, availability is re-checked and the seat stays selected only if it is still free.
 - Book exactly one seat per request. Every booking carries an idempotency key, so retries after a timeout or dropped connection can never create a second booking.
 - See the result clearly: confirmation page with a booking reference, "seat just taken" when someone else won, "still checking" while a retry is in progress, and "we couldn't confirm" with a safe way to check.
@@ -53,9 +53,9 @@ Out of scope for V1: payments, holds or seat locking, admin tools, emails or tic
 
 | Phase | Work | Outcome |
 | --- | --- | --- |
-| 0 | Auth, origin check, JSON, Zod validation | 401 / 403 / 415 / 422 |
+| 0 | Auth, origin check, JSON, Zod validation | 401 / 403 / 415 / 400 `VALIDATION_ERROR` |
 | 1 | Insert the idempotency key `(user, key)` with a fingerprint, a 15 s lease and an `attemptId` fencing token | See idempotency table |
-| 2 | Fast reads: event missing / seat missing / seat already booked | Final 404 / 409 `SEAT_TAKEN`, stored on the key |
+| 2 | Fast reads: event missing / event already started / seat missing / seat already booked | Final 404 / 409 `BOOKING_CLOSED` / 409 `SEAT_TAKEN`, stored on the key |
 | 3 | Transaction loop: ≤5 attempts within a 4 s deadline, jittered backoff, commit retried on `UnknownTransactionCommitResult` | 201 booking, or 409 `SEAT_TAKEN` |
 | 4 | Non-final failure: fenced release of the key | 503 `BOOKING_UNAVAILABLE` (retryable with the same key) |
 
@@ -76,14 +76,16 @@ If a commit outcome is unknown the key is **not** released, so a retry cannot do
 
 ## Verified results
 
-Measured on 2 Oct 2026. These are correctness checks on one machine, **not** a capacity benchmark.
+Measured on 2 Oct 2026 unless dated otherwise. These are correctness checks on one machine, **not** a capacity benchmark.
 
 | Check | Result |
 | --- | --- |
 | Concurrency demo: 100 users, distinct keys, one seat, 2 API processes | 1 × 201, 99 × 409 `SEAT_TAKEN`, 0 errors, 1 booking in MongoDB |
+| Concurrency demo in CI: 300 users, 2 API processes | Runs on every push since V1.1; see the `demo-results` artifact of the latest CI run |
 | Idempotency demo: replay, payload conflict, 20 simultaneous same-key requests | 7/7 checks pass: one booking, others 409 `IN_PROGRESS`, follow-up replays it |
 | API integration suite against a real replica set | Auth, events, bookings, idempotency, injected MongoDB faults, 50-user race |
-| Unit + web suites | 75 tests (schemas, crypto, config, seat map, booking states, retries, polling) |
+| Unit + web suites | 79 tests (schemas, crypto, config, seat map, booking states, retries, polling, closed events), 26 Oct 2026 |
+| Accessibility and layout audit | 7 screens at 390 and 1440 px: no horizontal scroll, 0 axe-core WCAG 2.2 A/AA violations, keyboard-only booking, 26 Oct 2026 |
 | Live deployment | Health check on Atlas, event data, auth errors, booking and second-user conflict verified on the live site |
 
 ## Run it locally
@@ -126,7 +128,7 @@ Open http://localhost:5173.
 # terminal 1 (DEMO_MODE=true in .env)
 npm run build && npm run start:two
 # terminal 2
-npm run demo:concurrency -- --users 100 --targets http://localhost:4001,http://localhost:4002
+npm run demo:concurrency -- --users 300 --targets http://localhost:4001,http://localhost:4002
 npm run demo:idempotency -- --targets http://localhost:4001
 ```
 
@@ -140,7 +142,7 @@ The demo checks both APIs are up, resets the 1-seat event, logs in N users (not 
 | POST | `/api/auth/register` · `/api/auth/login` | – | Create account / log in; sets the session cookie |
 | POST | `/api/auth/logout` | – | Ends the session (idempotent) |
 | GET | `/api/auth/me` | ✓ | Current user |
-| GET | `/api/events` · `/api/events/:id` | – | Events with availability; event details and layout |
+| GET | `/api/events` · `/api/events/:id` | – | Upcoming events with availability; event details, layout and `bookingOpen` |
 | GET | `/api/events/:id/seats` | – | Seat snapshot (`no-store`) |
 | POST | `/api/bookings` | ✓ | Book a seat (requires `Idempotency-Key`) |
 | GET | `/api/bookings/:id` | ✓ | One booking (404 if it isn't yours) |
@@ -166,7 +168,7 @@ render.yaml   Render Blueprint (the live deployment)
 
 - `packages/shared/test`: schema edge cases (seat IDs, strict bodies, UUID keys).
 - `apps/api/test/unit`: crypto helpers, error mapping, config parsing (including production safety checks).
-- `apps/api/test/integration`: against a real replica set, one database per worker: `auth`, `events`, `bookings` (ownership: other users get 404), `idempotency`, `transaction-failures` (MongoDB `failCommand` fail points and injected fault points: transient errors, unknown commit result, primary shutdown during commit, lease takeover, crash after commit), `concurrency` (50 users, one seat, exactly one booking).
+- `apps/api/test/integration`: against a real replica set, one database per worker: `auth`, `events`, `bookings` (ownership: other users get 404), `idempotency`, `transaction-failures` (MongoDB `failCommand` fail points and injected fault points: transient errors, unknown commit result, primary shutdown during commit, lease takeover, crash after commit), `concurrency` (50 users, one seat, exactly one booking), `event-lifecycle` (booking closes at start, rolling demo dates).
 - `apps/web/test`: seat-map keyboard navigation, booking states, same-key retries, login-intent restore, live polling, header.
 
 After every integration test, a check scans the whole database: a seat is booked if and only if exactly one booking points to it. The integration suite refuses to run without a replica set and says why.
@@ -175,7 +177,7 @@ After every integration test, a check scans the whole database: a seat is booked
 
 One Render web service runs the API and serves the built React app from the same origin, so the session cookie stays first-party. MongoDB Atlas provides the replica set (every Atlas cluster, including the free tier, is one).
 
-1. **Atlas:** create a project and a free cluster near Singapore, a database user with a generated password, and a Network Access entry. Render's free plan has no fixed outbound IP, so this entry is `0.0.0.0/0`; the strong password is what protects the database. Use the connection string with the database name: `mongodb+srv://<user>:<password>@<cluster>/seatly?retryWrites=true&w=majority`.
+1. **Atlas:** create a project and a free cluster, a database user with a generated password, and a Network Access entry. Render's free plan has no fixed outbound IP, so this entry is `0.0.0.0/0`; the strong password is what protects the database. Use the connection string with the database name: `mongodb+srv://<user>:<password>@<cluster>/seatly?retryWrites=true&w=majority`.
 2. **Seed Atlas from your machine** (Render's free plan has no shell). A variable set on the command line overrides `.env`:
    ```bash
    MONGODB_URI='…' npm run db:check
@@ -185,7 +187,7 @@ One Render web service runs the API and serves the built React app from the same
 3. **Render:** New → Blueprint → pick this repository. `render.yaml` creates the `seatly` service; set the two secrets when asked: `MONGODB_URI` and `APP_ORIGIN` (the exact service URL, no trailing slash).
 4. **Check:** `/api/health` returns `{"status":"ok","db":"ok","replicaSet":"…"}`; then register, book a seat and open My bookings.
 
-Notes: the build installs devDependencies on purpose (`npm ci --include=dev`), because `NODE_ENV=production` would otherwise skip the build tools. In production the API refuses to start without `APP_ORIGIN` or with `COOKIE_SECURE` off. `DEMO_MODE` stays `false`: the demo scripts reset data and are for local runs only.
+Notes: the build installs devDependencies on purpose (`npm ci --include=dev`), because `NODE_ENV=production` would otherwise skip the build tools. In production the API refuses to start without `APP_ORIGIN` or with `COOKIE_SECURE` off. `DEMO_MODE` stays `false`: the demo scripts reset data and are for local runs only. `DEMO_ROLLING_DATES=true` keeps the seeded events in the future on the live demo. Day-to-day deploys, smoke checks and incident runbooks: [docs/operations](docs/operations/deployment.md).
 
 ## Security notes
 
@@ -198,6 +200,14 @@ Notes: the build installs devDependencies on purpose (`npm ci --include=dev`), b
 
 The project went through six reviewed stages: requirements and acceptance criteria, Figma design, technical plan, implementation in vertical slices, verification against a real replica set, and deployment.
 
+## Documentation
+
+Requirements, design, architecture and operations docs live in [`docs/`](docs/index.md), the source of truth for how Seatly works. Start with the [product overview](docs/product/overview.md), [booking correctness](docs/architecture/booking-correctness.md) and the [codebase walkthrough](docs/development/codebase-walkthrough.md). Changes are listed in the [CHANGELOG](CHANGELOG.md); known gaps in [known issues](docs/known-issues.md).
+
 ## Credits
 
 See [CREDITS.md](CREDITS.md).
+
+## License
+
+[MIT](LICENSE) © 2026 Suraj Adhikary

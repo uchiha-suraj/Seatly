@@ -210,7 +210,34 @@ export async function seedDatabase(clock: Clock): Promise<{ events: number; seat
     const preBooked = Array.isArray(e.preBooked) ? e.preBooked : pickSeats(all, e.preBooked);
     if (preBooked.length) await bookForHouse(event._id, e.slug, preBooked, house._id, now);
   }
+  await rollDemoDates(clock);
   return { events: SEED_EVENTS.length, seats: seatCount };
+}
+
+/** Seven weeks: longer than the furthest seed offset (45 days), and keeps each event's weekday and time. */
+export const DEMO_ROLL_DAYS = 49;
+
+/**
+ * Keeps the demo catalogue current: every seeded event that has started moves forward by whole
+ * 7-week steps until it is in the future again. Its seats and bookings move with it.
+ * Race-safe and idempotent: each move is a conditional update on the start time it read, so two
+ * processes running this at once move an event once.
+ */
+export async function rollDemoDates(clock: Clock): Promise<number> {
+  const now = clock.now();
+  const step = DEMO_ROLL_DAYS * 86_400_000;
+  const started = await Event.find({ slug: { $in: SEED_EVENTS.map((e) => e.slug) }, startsAt: { $lte: now } }).lean();
+  let moved = 0;
+  for (const e of started) {
+    const steps = Math.floor((now.getTime() - e.startsAt.getTime()) / step) + 1;
+    const shift = steps * step;
+    const res = await Event.updateOne(
+      { _id: e._id, startsAt: e.startsAt },
+      { $set: { startsAt: new Date(e.startsAt.getTime() + shift), endsAt: new Date(e.endsAt.getTime() + shift) } },
+    );
+    moved += res.modifiedCount;
+  }
+  return moved;
 }
 
 /** House bookings keep the same invariant as real ones: seat + booking change in one transaction. */

@@ -12,6 +12,7 @@ export const ERROR_CODES = {
   BOOKING_NOT_FOUND: 404,
   EMAIL_TAKEN: 409,
   SEAT_TAKEN: 409,
+  BOOKING_CLOSED: 409,
   IDEMPOTENCY_IN_PROGRESS: 409,
   UNSUPPORTED_MEDIA_TYPE: 415,
   IDEMPOTENCY_KEY_REUSED: 422,
@@ -35,6 +36,7 @@ export interface ApiErrorBody {
 /** Outcomes after which a booking attempt is over: the client must not resend that key. */
 export const DEFINITIVE_BOOKING_CODES: readonly ErrorCode[] = [
   'SEAT_TAKEN',
+  'BOOKING_CLOSED',
   'EVENT_NOT_FOUND',
   'SEAT_NOT_FOUND',
   'VALIDATION_ERROR',

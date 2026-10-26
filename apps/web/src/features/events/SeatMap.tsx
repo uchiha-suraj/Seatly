@@ -71,7 +71,7 @@ export function SeatMap({ layout, seats, selected, locked, onSelect }: Props) {
                 const seat = byId.get(seatId);
                 const booked = !seat || seat.status === 'booked';
                 const isSelected = selected === seatId;
-                const label = `Seat ${seatId}, ${isSelected ? 'selected' : booked ? 'booked' : 'available'}`;
+                const label = `Row ${seatId.slice(0, 1)}, seat ${seatId.slice(1)}, ${isSelected ? 'selected' : booked ? 'booked' : 'available'}`; // contains the visible number (WCAG 2.5.3)
                 const look = isSelected
                   ? 'bg-brand text-white font-semibold'
                   : booked

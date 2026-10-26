@@ -26,6 +26,8 @@ services:
         value: "true"
       - key: DEMO_MODE
         value: "false"
+      - key: DEMO_ROLLING_DATES
+        value: "true" # keeps the seeded catalogue in the future; see docs/operations
       - key: ARGON2_MEMORY_KIB
         value: "19456"
       - key: LOG_LEVEL

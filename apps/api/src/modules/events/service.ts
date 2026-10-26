@@ -4,7 +4,7 @@ import { Event, Seat, type EventDoc } from '../../db/models';
 import type { Clock } from '../../lib/clock';
 import { AppError } from '../../lib/errors';
 
-function toSummary(e: EventDoc, availableSeats: number): EventSummaryDto {
+function toSummary(e: EventDoc, availableSeats: number, now: Date): EventSummaryDto {
   return {
     id: e._id.toString(),
     slug: e.slug,
@@ -17,7 +17,13 @@ function toSummary(e: EventDoc, availableSeats: number): EventSummaryDto {
     venue: e.venue,
     totalSeats: e.totalSeats,
     availableSeats,
+    bookingOpen: isBookingOpen(e, now),
   };
+}
+
+/** Booking closes when the event starts (BR-13). */
+export function isBookingOpen(e: Pick<EventDoc, 'startsAt'>, now: Date): boolean {
+  return e.startsAt.getTime() > now.getTime();
 }
 
 /** Unknown and malformed ids get the same 404, so the UI shows one Not-found page for both. */
@@ -39,9 +45,11 @@ export class EventsService {
   constructor(private readonly clock: Clock) {}
 
   async list(): Promise<EventSummaryDto[]> {
-    const events = await Event.find().sort({ startsAt: 1 }).lean<EventDoc[]>();
+    // Only events that have not started yet are listed; started events stay reachable by URL.
+    const now = this.clock.now();
+    const events = await Event.find({ startsAt: { $gt: now } }).sort({ startsAt: 1 }).lean<EventDoc[]>();
     const counts = await availableCounts(events.map((e) => e._id));
-    return events.map((e) => toSummary(e, counts.get(e._id.toString()) ?? 0));
+    return events.map((e) => toSummary(e, counts.get(e._id.toString()) ?? 0, now));
   }
 
   async get(rawId: string): Promise<EventDetailDto> {
@@ -50,7 +58,7 @@ export class EventsService {
     if (!e) throw new AppError('EVENT_NOT_FOUND', 'We couldn’t find that event.');
     const counts = await availableCounts([e._id]);
     return {
-      ...toSummary(e, counts.get(e._id.toString()) ?? 0),
+      ...toSummary(e, counts.get(e._id.toString()) ?? 0, this.clock.now()),
       description: e.description,
       layout: { rows: [...e.layout.rows], seatsPerRow: e.layout.seatsPerRow },
     };

@@ -17,6 +17,7 @@ export const EVENT: EventDetailDto = {
   venue: 'The Lantern Room, Jubilee Hills',
   totalSeats: 6,
   availableSeats: 4,
+  bookingOpen: true,
   description: 'Late-night standards.',
   layout: { rows: ['A', 'B'], seatsPerRow: 3 },
 };
@@ -30,6 +31,8 @@ export const db = {
   seatFetches: 0,
   bookings: [] as BookingDto[],
   bookingResponder: null as BookingResponder | null,
+  /** False simulates an event that has started (AC-28). */
+  bookingOpen: true,
 };
 
 export function resetDb(opts: { me?: UserDto | null; booked?: string[] } = {}) {
@@ -39,6 +42,7 @@ export function resetDb(opts: { me?: UserDto | null; booked?: string[] } = {}) {
   db.seatFetches = 0;
   db.bookings = [];
   db.bookingResponder = null;
+  db.bookingOpen = true;
 }
 
 function seats(): SeatDto[] {
@@ -77,7 +81,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
   http.get('*/api/events', () => HttpResponse.json({ events: [{ ...EVENT, availableSeats: seats().filter((s) => s.status === 'available').length }] })),
-  http.get('*/api/events/:id', ({ params }) => (params.id === EVENT_ID ? HttpResponse.json({ event: EVENT }) : err(404, 'EVENT_NOT_FOUND'))),
+  http.get('*/api/events/:id', ({ params }) => (params.id === EVENT_ID ? HttpResponse.json({ event: { ...EVENT, bookingOpen: db.bookingOpen } }) : err(404, 'EVENT_NOT_FOUND'))),
   http.get('*/api/events/:id/seats', () => {
     db.seatFetches++;
     const s = seats();

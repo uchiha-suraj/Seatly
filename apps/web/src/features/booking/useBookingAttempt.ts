@@ -12,7 +12,7 @@ export type AttemptState =
   | { status: 'retryFailed'; seatId: string }
   | { status: 'conflict'; seatId: string }
   | { status: 'sessionExpired'; seatId: string }
-  | { status: 'error'; seatId: string; message: string };
+  | { status: 'error'; seatId: string; message: string; code: string | null };
 
 interface Callbacks {
   onSuccess(booking: BookingDto): void;
@@ -96,7 +96,7 @@ export function useBookingAttempt(eventId: string, cb: Callbacks) {
               setState({ status: 'sessionExpired', seatId });
               cbRef.current.onUnauthenticated();
             } else {
-              setState({ status: 'error', seatId, message: err.message });
+              setState({ status: 'error', seatId, message: err.message, code: err.code ?? null });
               cbRef.current.onAbandoned();
             }
             return;
