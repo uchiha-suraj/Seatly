@@ -26,7 +26,7 @@ Not collected: phone numbers, addresses, payment details, analytics or tracking 
 
 | Processor | What it receives | Region |
 | --- | --- | --- |
-| MongoDB Atlas | All stored data above | Cluster region chosen at creation (Suraj's free cluster) |
+| MongoDB Atlas | All stored data above | AWS Mumbai (ap-south-1), free cluster, 3-node replica set |
 | Render | Requests and logs passing through the web service | Singapore |
 | GitHub | No user data (code and CI only; CI uses throwaway test data) | — |
 
@@ -47,4 +47,4 @@ Deleting bookings by hand frees seats, which the product otherwise never does. D
 
 ## Known gaps (V2)
 
-Privacy page, self-service account deletion, defined retention for inactive accounts and old bookings, log retention settings, and confirming the Atlas cluster's region in this document. Tracked in [requirements](../product/requirements.md#known-gaps-against-these-requirements).
+Privacy page, self-service account deletion, defined retention for inactive accounts and old bookings, and log retention settings. Tracked in [requirements](../product/requirements.md#known-gaps-against-these-requirements).

@@ -1,7 +1,7 @@
 # Deployment
 
 > **Authority:** environments, how a change reaches the live demo, how to check it and how to roll back. Variables are defined in [configuration.md](../development/configuration.md).
-> **Status:** process verified on 2 Oct 2026 (first deploy). The V1.1 deploy has **not** happened yet.
+> **Status:** process verified on 2 Oct 2026 (first deploy). V1.1 deployed 27 Oct 2026 after fixing an expired Atlas access-list entry ([runbook](runbooks.md#database-unreachable)).
 
 ## Environments
 

@@ -17,17 +17,15 @@
 | KI-8 | No automated dependency alerts | Vulnerable packages could go unnoticed | Turn on Dependabot (V2, small) |
 | KI-9 | Primary failover during a booking only tested with a one-node replica set (step-down), not a real multi-node election | Untested path, though designed for ([booking-correctness](architecture/booking-correctness.md#limits)) | Accepted |
 
-## Pending verification (V1.1)
+## Still unverified
 
 | Item | How it gets verified |
 | --- | --- |
-| `event-lifecycle.test.ts` has never run | CI on the next push, and `npm run test:api` locally |
-| AC-22 at 300 users | CI step on the next push |
-| `DEMO_ROLLING_DATES` applied on Render; live list shows only upcoming events | After deploy ([deployment](operations/deployment.md#smoke-check-after-a-deploy)) |
 | Invariant check queries in the runbook | First use on Atlas |
 
 ## Technical debt
 
+- CI warnings (27 Oct 2026): `actions/checkout`, `setup-node` and `upload-artifact` v4 target the deprecated Node 20 runtime, and `ubuntu-latest` is moving to Ubuntu 26. Bump the actions to their current major versions and re-run CI.
 - TypeScript pinned to 6.0 until typescript-eslint supports 7 ([ADR-0011](adr/0011-typescript-6-pin.md)).
 - `SERVICE_UNAVAILABLE` error code is declared but never returned.
 - No pagination on event lists or My bookings (fine at V1 sizes).

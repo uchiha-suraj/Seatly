@@ -43,7 +43,7 @@ V1 has no product analytics, by decision: there is no tracking script, cookie ba
 
 | Measure | Target | Latest result |
 | --- | --- | --- |
-| Concurrency demo: N users race for one seat | Exactly 1 success, N−1 `SEAT_TAKEN`, 0 unexpected, 1 booking stored (AC-22, N ≥ 200) | 100 users on 2 Oct 2026: met. 300 users now runs in CI on every push; **first result pending** (V1.1 push). |
+| Concurrency demo: N users race for one seat | Exactly 1 success, N−1 `SEAT_TAKEN`, 0 unexpected, 1 booking stored (AC-22, N ≥ 200) | 300 users, 27 Oct 2026 (CI): 1 success, 299 `SEAT_TAKEN`, 0 unexpected, 1 booking stored. Met. |
 | Same-key retries | Never more than one booking per key (AC-17 to AC-20) | Idempotency demo 7/7 checks, 2 Oct 2026 |
 | Automated tests | All pass in CI on every push to `main` | Green since CI run #6 (2 Oct 2026) |
 | Design fidelity | Screens match the Figma file at 390 and 1440 px (AC-26) | Main screens compared with Figma 2 Oct 2026; all 7 screens passed the automated layout, accessibility and keyboard audit 26 Oct 2026 |

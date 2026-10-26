@@ -1,6 +1,6 @@
 # F-06 Booking closes when an event starts
 
-> **Status:** built 26 Oct 2026 for V1.1 (decision [ADR-0012](../adr/0012-booking-closes-at-start.md); answers open question Q8). Requirement AC-28. Web tests pass; **API integration tests written but not yet run** (first run in CI on the next push).
+> **Status:** built 26 Oct 2026 for V1.1 (decision [ADR-0012](../adr/0012-booking-closes-at-start.md); answers open question Q8). Requirement AC-28. Verified 27 Oct 2026: API 53/53 and web 48/48 in CI run #8; live since 27 Oct 2026.
 
 ## Summary
 
@@ -27,4 +27,4 @@ Boundary: booking is open while `startsAt > now` (server clock). Events in progr
 
 ## Open items
 
-After deploying: confirm on Render that `DEMO_ROLLING_DATES=true` is applied (Blueprint sync) and that the live list shows only upcoming events. Real event management (creating, ending, archiving events) is a V2 candidate.
+Checked 27 Oct 2026: the live list shows only upcoming events and three seeded events were rolled to December. Real event management (creating, ending, archiving events) is a V2 candidate.

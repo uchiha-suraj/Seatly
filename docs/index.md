@@ -1,6 +1,6 @@
 # Seatly documentation
 
-Seatly is a web app for booking one specific seat at an event. Its point is a guarantee: **when many people try to book the last seat at the same moment, exactly one booking succeeds, and retrying a request never creates a second booking.** V1 is built, tested and live; V1.1 (26 Oct 2026) closes its remaining gaps. It is a portfolio project with no business model, so the documentation is written for two readers: the owner (Suraj), and a developer or reviewer who joins later and needs to understand the system quickly.
+Seatly is a web app for booking one specific seat at an event. Its point is a guarantee: **when many people try to book the last seat at the same moment, exactly one booking succeeds, and retrying a request never creates a second booking.** V1 is complete: built, tested and live, with V1.1 (27 Oct 2026) closing its last gaps. It is a portfolio project with no business model, so the documentation is written for two readers: the owner (Suraj), and a developer or reviewer who joins later and needs to understand the system quickly.
 
 > **Status of this index:** updated 26 Oct 2026 after Stage D. Every document listed below exists.
 >
@@ -98,12 +98,12 @@ Payments (V2 candidate), AI features, mobile app releases, offline sync, real-ti
 | # | Finding | Outcome |
 | --- | --- | --- |
 | G1 | README said invalid input returns 422; the code returns 400 `VALIDATION_ERROR` | Fixed 26 Oct 2026 |
-| G2 | AC-22 run used 100 users, requirement says ≥ 200 | 300 users in CI from V1.1; **first result pending** |
+| G2 | AC-22 run used 100 users, requirement says ≥ 200 | Verified at 300 users in CI, 27 Oct 2026 |
 | G3 | Stage 1 said the seat map refreshes only on load and focus; V1 polls | Recorded as AC-27 and ADR-0010 |
 | G4 | Stage 1–6 docs outside the repo | Resolved by Q1 |
 | G5 | No licence | MIT added (Q6) |
 | G6 | No monitoring, backups unconfirmed | Accepted for V1 (Q5); documented in operations; V2 candidate |
-| G7 | Started events stayed listed and bookable | Fixed in V1.1 (AC-28); API tests pending first run |
+| G7 | Started events stayed listed and bookable | Fixed in V1.1 (AC-28), verified 27 Oct 2026 |
 | G8 | AC-26 only partly verified | Verified 26 Oct 2026 by automated audit; screen-reader pass left for V2 |
 
 ## Open questions

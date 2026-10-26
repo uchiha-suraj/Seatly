@@ -9,7 +9,7 @@
 | [F-03](F-03-booking.md) | Booking a seat | V1 | Shipped 2 Oct 2026 |
 | [F-04](F-04-my-bookings.md) | My bookings | V1 | Shipped 2 Oct 2026 |
 | [F-05](F-05-live-seat-map.md) | Live seat map | V1 | Shipped 2 Oct 2026 |
-| [F-06](F-06-event-lifecycle.md) | Booking closes when an event starts | V1.1 | Built 26 Oct 2026; API tests pending first run |
+| [F-06](F-06-event-lifecycle.md) | Booking closes when an event starts | V1.1 | Shipped 27 Oct 2026 |
 
 ## Template
 

@@ -1,7 +1,7 @@
 # Testing
 
 > **Authority:** test layers, commands, what each suite proves, and CI. Requirement-to-test mapping lives in [requirements.md](../product/requirements.md).
-> **Status:** verified 26 Oct 2026 (unit and web suites run in the cloud workspace; the API integration suite needs MongoDB and was last run on 2 Oct 2026, see below).
+> **Status:** verified 26 Oct 2026 ; all suites and both demos last ran in CI on 27 Oct 2026.
 
 ## Layers
 
@@ -33,9 +33,11 @@
 | Unit (shared + API) | 31/31 pass | Cloud workspace, 26 Oct 2026 |
 | Web | 48/48 pass, 10 consecutive runs | Cloud workspace, 26 Oct 2026 |
 | Lint, typecheck, build | Clean | Cloud workspace, 26 Oct 2026 |
-| API integration | 46/46 pass | Suraj's machine, 2 Oct 2026, and CI runs #6–#7. **The V1.1 file `event-lifecycle.test.ts` has not run yet**: no MongoDB in the cloud workspace. It runs in CI on the next push. |
+| API integration | 53/53 pass, including `event-lifecycle.test.ts` | CI run #8, commit `4f4d817`, 27 Oct 2026 (46/46 on 2 Oct 2026 before V1.1) |
+| Unit and web in CI | 31/31 and 48/48 | CI run #8, commit `4f4d817`, 27 Oct 2026 |
 | Concurrency demo, 100 users | 1 × 201, 99 × 409, 1 booking stored | Suraj's machine, 2 Oct 2026 |
-| Concurrency demo, 300 users | **Pending**: now a CI step; first result on the next push | — |
+| Concurrency demo, 300 users | 1 × 201, 299 × 409 `SEAT_TAKEN`, 0 × 503, 0 unexpected, 1 booking stored, seat `booked`; two API processes; p50 817 ms, p95 901 ms, wall 938 ms (CI runner, not capacity) | CI run #8, commit `4f4d817`, 27 Oct 2026 |
+| Idempotency demo | Replay same booking; 422 on a different seat; 20 same-key requests → 14 × 201 (1 booking, 13 replays) + 6 × 409 `IN_PROGRESS`; follow-up replays; 1 booking, 1 key record | CI run #8, commit `4f4d817`, 27 Oct 2026 |
 | UI audit | 7 screens × 2 widths: no horizontal overflow, 0 axe violations (WCAG 2.2 A/AA rules), seats 44 px mobile / 40 px desktop, keyboard-only booking completed | Cloud workspace against a mock API, 26 Oct 2026 |
 
 Not tested automatically: a real screen reader, a real multi-node failover, the live site under load.

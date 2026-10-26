@@ -81,7 +81,7 @@ Measured on 2 Oct 2026 unless dated otherwise. These are correctness checks on o
 | Check | Result |
 | --- | --- |
 | Concurrency demo: 100 users, distinct keys, one seat, 2 API processes | 1 × 201, 99 × 409 `SEAT_TAKEN`, 0 errors, 1 booking in MongoDB |
-| Concurrency demo in CI: 300 users, 2 API processes | Runs on every push since V1.1; see the `demo-results` artifact of the latest CI run |
+| Concurrency demo in CI: 300 users, 2 API processes (27 Oct 2026) | 1 × 201, 299 × 409 `SEAT_TAKEN`, 0 unexpected, 1 booking in MongoDB; re-run on every push |
 | Idempotency demo: replay, payload conflict, 20 simultaneous same-key requests | 7/7 checks pass: one booking, others 409 `IN_PROGRESS`, follow-up replays it |
 | API integration suite against a real replica set | Auth, events, bookings, idempotency, injected MongoDB faults, 50-user race |
 | Unit + web suites | 79 tests (schemas, crypto, config, seat map, booking states, retries, polling, closed events), 26 Oct 2026 |

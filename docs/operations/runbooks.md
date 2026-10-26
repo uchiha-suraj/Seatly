@@ -20,7 +20,7 @@ Every runbook ends the same way: note what happened and what you did in [handoff
 Health shows `db: unavailable`, or logs show `MongoServerSelectionError` / authentication errors.
 
 1. Atlas → the cluster: is it paused or in maintenance? Free clusters pause after long inactivity; resume it.
-2. Atlas → Network Access must include `0.0.0.0/0` (Render has no fixed IP).
+2. Atlas → Network Access must include `0.0.0.0/0` (Render has no fixed IP), saved as **permanent**. A temporary entry expires silently: running instances keep their open connections, but the next deploy or restart cannot connect. The log then shows `tlsv1 alert internal error` (SSL alert number 80) and `commonWireVersion: 0`, and the process exits before listening. Seen on 27 Oct 2026; fixed by re-adding the entry and redeploying.
 3. Atlas → Database Access: does the user exist with the password that is in Render's `MONGODB_URI`? If the password was rotated, update `MONGODB_URI` in Render and redeploy.
 4. The URI must contain `/seatly` and point at the replica set; `+srv` is fine on Render.
 

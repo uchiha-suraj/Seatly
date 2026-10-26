@@ -56,7 +56,7 @@
 | AC-14 | A logged-out user pressing Confirm is sent to login and returns to the event; availability is refetched and the seat is re-selected only if it is still available (otherwise an info message explains it was taken). The seat is never held. | T | Verified 2 Oct 2026 | `booking.test.tsx` |
 | AC-15 | A 401 during booking (expired session) shows the session-expired message, routes to login, and returns to the event with the same refetch-then-restore-if-available behaviour as AC-14. | T | Verified 2 Oct 2026 | `booking.test.tsx` |
 | AC-16 | Two different seats in one event can be booked by different users independently. | T | Verified 2 Oct 2026 | `bookings.test.ts` |
-| AC-28 | **New, approved 26 Oct 2026 (Q8).** Booking closes when an event starts: the event list shows only events that have not started; a started event's page shows "Booking has closed" with the seat map locked; `POST /api/bookings` returns 409 `BOOKING_CLOSED`, stored and replayed like other final outcomes, with no seat or booking change. | T | **Built; web tests pass (26 Oct 2026); API tests written, not yet run** | `apps/api/test/integration/event-lifecycle.test.ts`, `apps/web/test/lifecycle.test.tsx` |
+| AC-28 | **New, approved 26 Oct 2026 (Q8).** Booking closes when an event starts: the event list shows only events that have not started; a started event's page shows "Booking has closed" with the seat map locked; `POST /api/bookings` returns 409 `BOOKING_CLOSED`, stored and replayed like other final outcomes, with no seat or booking change. | T | **Verified 27 Oct 2026**: API integration 53/53 and web 48/48 in CI run #8, commit `4f4d817`, 27 Oct 2026; live list checked the same day | `apps/api/test/integration/event-lifecycle.test.ts`, `apps/web/test/lifecycle.test.tsx` |
 | AC-27 | **New, approved 2 Oct 2026.** While the event page is visible, the seat map refreshes at least every 10 s and when the window regains focus; it does not poll in a hidden tab or while a booking request is in flight. If a refresh shows the selected seat was booked by someone else, the selection is cleared and a notice says so without moving keyboard focus. | T, M | Verified 2 Oct 2026 (tests; two-window check on the live site by Suraj) | `apps/web/test/polling.test.tsx` |
 
 *Amended 2 Oct 2026:* Stage 1 said the seat map refreshes only on load, on window focus and after a booking attempt. AC-27 adds timed refresh; the rule that availability on screen is advisory is unchanged. Decision record: [ADR-0010](../adr/0010-seat-map-polling.md).
@@ -76,7 +76,7 @@
 | ID | Requirement | Method | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | AC-21 | If the transaction is forced to fail after the seat claim, the seat stays available and no booking or idempotency success is stored. | T | Verified 2 Oct 2026 | `apps/api/test/integration/transaction-failures.test.ts` |
-| AC-22 | Concurrency demo: N (≥ 200) distinct users, distinct keys, one fresh seat → exactly 1 success, N−1 `SEAT_TAKEN`, 0 unexpected failures, and a DB query shows exactly 1 booking for that seat. Exact counts are reported, not estimated. | D (+T at 50 users) | **Partly verified.** Met with 100 users on 2 Oct 2026. Since 26 Oct 2026 CI runs it with **300 users** across two processes on every push; **first 300-user result pending** (next push). | `concurrency.test.ts`; CI artifact `demo-results`; `demo-results/concurrency-2026-10-02T14-01-40-738Z.json` |
+| AC-22 | Concurrency demo: N (≥ 200) distinct users, distinct keys, one fresh seat → exactly 1 success, N−1 `SEAT_TAKEN`, 0 unexpected failures, and a DB query shows exactly 1 booking for that seat. Exact counts are reported, not estimated. | D (+T at 50 users) | **Verified 27 Oct 2026 at 300 users** (CI run #8, commit `4f4d817`, 27 Oct 2026): 1 × 201, 299 × 409 `SEAT_TAKEN`, 0 × 503, 0 unexpected, 1 booking stored, seat `booked`; two API processes; p50 817 ms, p95 901 ms, wall 938 ms (CI runner, not capacity). Earlier: 100 users on 2 Oct 2026. Re-checked on every push. | `concurrency.test.ts`; CI artifact `demo-results`; `demo-results/concurrency-2026-10-02T14-01-40-738Z.json` |
 | AC-23 | The demo works with 2 API processes behind the same database. | D | Verified 2 Oct 2026 (50/50 split across two processes) | Same demo report |
 
 ### My bookings and access
@@ -110,19 +110,17 @@
 
 | ID | Gap | Planned action |
 | --- | --- | --- |
-| AC-22 | 300-user result not yet recorded | First CI run after the V1.1 push; record the counts here from the `demo-results` artifact |
-| AC-28 | API integration tests not yet run | CI on the V1.1 push, and `npm run test:api` locally |
 | NFR-7 | No screen-reader pass | V2 ([known issues](../known-issues.md) KI-5) |
 | — | No account deletion or privacy notice; registered emails and names are stored | Documented as current state (decision 25 Oct 2026); revisit in V2 |
 | — | No database backups confirmed; recovery is re-seeding | Accepted for V1 (decision 25 Oct 2026); revisit in V2 |
 
-Closed on 26 Oct 2026: AC-26 (automated audit) and the past-events gap (AC-28, decision Q8).
+Closed on 26–27 Oct 2026: AC-22 at 300 users, AC-26 (automated audit), and the past-events gap (AC-28, decision Q8).
 
 ## Roadmap
 
 ### V1: done
 
-Shipped 2 Oct 2026: everything in [V1 scope](#v1-scope), plus the live seat map (AC-27). V1.1 (26 Oct 2026, [CHANGELOG](../../CHANGELOG.md)) closes the remaining V1 gaps: booking closes at start with rolling demo dates (AC-28), accessible seat names, the login `returnTo` fix, the 300-user demo in CI, and these docs. V1 is complete once V1.1's CI run and deploy check pass ([status](../status.md)).
+Shipped 2 Oct 2026: everything in [V1 scope](#v1-scope), plus the live seat map (AC-27). V1.1 (26 Oct 2026, [CHANGELOG](../../CHANGELOG.md)) closes the remaining V1 gaps: booking closes at start with rolling demo dates (AC-28), accessible seat names, the login `returnTo` fix, the 300-user demo in CI, and these docs. **V1 is complete** (27 Oct 2026): V1.1 passed CI and is live ([status](../status.md)).
 
 ### V2: to be defined
 

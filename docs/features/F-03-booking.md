@@ -34,4 +34,4 @@ API: `bookings.test.ts`, `idempotency.test.ts`, `transaction-failures.test.ts`, 
 
 ## Open items
 
-AC-22 at 300 users: first CI result pending. V2 candidates: holds, cancellation, per-user limits.
+AC-22 verified at 300 users (CI, 27 Oct 2026). V2 candidates: holds, cancellation, per-user limits.

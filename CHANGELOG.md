@@ -2,7 +2,7 @@
 
 All notable changes to Seatly. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions are product versions, not npm versions.
 
-## [1.1.0] — 26 Oct 2026 (V1 close-out; not yet deployed)
+## [1.1.0] — 27 Oct 2026 (V1 close-out)
 
 ### Added
 - Booking closes when an event starts: started events are hidden from the list, their page shows "Booking has closed", and `POST /api/bookings` returns 409 `BOOKING_CLOSED` (final, replayed on retry). New field `bookingOpen` on event summaries (AC-28, [ADR-0012](docs/adr/0012-booking-closes-at-start.md)).
@@ -17,6 +17,9 @@ All notable changes to Seatly. Format based on [Keep a Changelog](https://keepac
 - Logging in from a link with `returnTo` could land on the home page instead: the guest-only guard redirected before the login page did.
 - Flaky web test for hidden-tab polling.
 - README: invalid input returns 400 `VALIDATION_ERROR`, not 422.
+
+### Operations
+- Live deploy needed the Atlas `0.0.0.0/0` access-list entry re-added as permanent (it had expired).
 
 ### Data
 - No schema migration. `bookingOpen` is computed, not stored. Moving event dates changes `startsAt`/`endsAt` of seeded events only.
